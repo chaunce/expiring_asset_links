@@ -1,4 +1,4 @@
-# attr_encryptor
+# expiring_asset_links
 
 CarrierWave FOG Expiring Asset Links
 
