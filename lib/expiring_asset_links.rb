@@ -33,7 +33,7 @@ module ExpiringAssetLinks
     protected
 
     def remove_asset_tags(attribute)
-      self[attribute.to_sym].gsub(/https:\/\/#{CarrierWave::Uploader::Base.fog_directory}\.s3.\S+\/([a-z_]+)\/[a-z_]+\/(\d+)\/\S+Expires=[\d]{10}/) { "#{$1.classify}{{\\1}}" }
+      self[attribute.to_sym].gsub(/https:\/\/#{CarrierWave::Uploader::Base.fog_directory}\.s3.\S+\/([a-z_]+)\/[a-z_]+\/(\d+)\/\S+Expires=[\d]{10}/) { "#{$1.classify}{{#{$2}}}" }
     end
 
     def add_asset_tags(attribute)
