@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
 
   s.summary     = 'CarrierWave FOG Expiring Asset Links'
   s.description = 'Handles storing and generating CarrierWave FOG expiring asset link stored in string and text attributes of ActiveRecord objects'
+  s.license     = 'MIT'
 
   s.author   = 'chaunce'
   s.email    = 'chaunce.slc@gmail.com'
@@ -26,6 +27,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency('carrierwave')
   s.add_dependency('fog')
-  s.add_dependency('rails', ['>= 4.0.0'])
+  s.add_dependency('rails')
   s.add_development_dependency('sqlite3')
 end
