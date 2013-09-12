@@ -19,18 +19,32 @@ ActiveRecord::Schema.define(:version => 1) do
   end
   create_table :file_attachments do |t|
     t.integer :id
-    t.integer :url
+    t.integer :name
+    t.binary  :asset
   end
   create_table :image_attachments do |t|
     t.integer :id
-    t.integer :url
+    t.integer :name
+    t.binary  :asset
   end
 end
 
 class Document < ActiveRecord::Base
   attr_expiring_asset_links :body
 end
+
 class FileAttachment < ActiveRecord::Base
+  serialize :asset
 end
+
 class ImageAttachment < ActiveRecord::Base
+  serialize :asset
 end
+
+class AssetUploader < Struct.new(:my_url)
+  def url(*ignore)
+    "#{self.my_url}?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222"
+  end
+end
+    
+  

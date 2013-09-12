@@ -17,16 +17,14 @@ class ExpiringAssetLinksTest < Test::Unit::TestCase
       config.fog_directory  = "test"
       # config.fog_public     = false
     end
-    
-    
   end
 
   def test_should_assert_true
-    document = Document.new(:title => "This is the Document Title", :body => "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/1/sample.jpg?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">")
-    document.save!
-    # if we had a actual FileAttachment object it would connect to AWS to get a real URL
-    # to make this work in testing we need to stub CarrierWave
-    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{\\1}}\">", Document.first.body
+    file_attachment = FileAttachment.create(name: "test", asset: AssetUploader.new("https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/1/sample.jpg"))
+    document = Document.create(title: "This is the Document Title", body: "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_attachment.asset.url}\">")
+
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{1}}\">", Document.find(document.id).attributes["body"]
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/1/sample.jpg?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">", Document.find(document.id).body
   end
 
 end
