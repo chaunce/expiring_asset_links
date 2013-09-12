@@ -8,14 +8,25 @@ This is helpful when using a WYSIWYG that inserts and previews assets directly f
 
 ## Installation
 
-  gem install expiring_asset_links
+    gem install expiring_asset_links
 
 ## Usage
 
-### Your model
+### name your uploader mount `:asset`
+
+    class Images
+      mount_uploader :asset, ImageUploader
+      
+    end
+
+### specify the fields that will contain :asset links
 
     class Document
       attr_expiring_asset_links :body
       
     end
-
+    
+    class Article
+      attr_expiring_asset_links :summary, :body
+      
+    end
