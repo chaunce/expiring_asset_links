@@ -8,7 +8,6 @@ require 'carrierwave'
 require 'fog'
 require 'test/unit'
 
-
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
 
 ActiveRecord::Schema.define(:version => 1) do
@@ -29,16 +28,31 @@ ActiveRecord::Schema.define(:version => 1) do
   end
 end
 
+module HasAssets
+  module ClassMethods
+    def serialize_asset
+      serialize :asset
+    end
+    def uploaders
+      { asset: AssetUploader }
+    end
+  end
+
+  def self.included(base)
+    base.extend(ClassMethods).serialize_asset
+  end
+end
+
 class Document < ActiveRecord::Base
   attr_expiring_asset_links :body
 end
 
 class FileAttachment < ActiveRecord::Base
-  serialize :asset
+  include HasAssets
 end
 
 class ImageAttachment < ActiveRecord::Base
-  serialize :asset
+  include HasAssets
 end
 
 class AssetUploader < Struct.new(:my_url)

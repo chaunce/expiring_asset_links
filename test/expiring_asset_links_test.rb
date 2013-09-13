@@ -21,7 +21,7 @@ class ExpiringAssetLinksTest < Test::Unit::TestCase
 
   def test_should_assert_true
     file_attachment = FileAttachment.create(name: "test", asset: AssetUploader.new("https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/1/sample.jpg"))
-    document = Document.create(title: "This is the Document Title", body: "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_attachment.asset.url}\">")
+    document = Document.create(title: "This is the Document Title", body: "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_attachment.send(FileAttachment.uploaders.keys.first).url}\">")
 
     assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{1}}\">", Document.find(document.id).attributes["body"]
     assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/1/sample.jpg?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">", Document.find(document.id).body

@@ -37,7 +37,8 @@ module ExpiringAssetLinks
     end
 
     def add_asset_tags(attribute)
-      self[attribute.to_sym].gsub(/([A-Za-z]+)\{\{(\d+)\}\}/) { $1.constantize.find($2).asset.url(:default) }
+      linked_attribute = 
+      self[attribute.to_sym].gsub(/([A-Za-z]+)\{\{(\d+)\}\}/) { $1.constantize.find($2).send($1.constantize.uploaders.keys.first).url(:default) }
     end
 
     def remove_all_asset_tags!
