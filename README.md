@@ -28,7 +28,22 @@ or add it to your Gemfile
 
 ### configure CarrierWave
 
-in order to evaluate the class associated to the asset you must use the default `store_dir` shown below, `s3_headers` must include a value for `Expires`
+your configuration must satisfy the following requirements:
+
+* specify `storage :fog`
+* use the default `store_dir` string (included below) or one that ends with `folder/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}`, any of the following will work
+
+<pre>
+#{Rails.env}/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
+#{Rails.env}/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
+uploads/#{Rails.env}/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
+uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
+a/series/of/folder/names/or/1/numbers/2/that_do/not/contain/spaces/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
+</pre>
+
+* `s3_headers` must include a value for `Expires`
+
+for example
 
     class AssetUploader < CarrierWave::Uploader::Base
       storage :fog
@@ -38,7 +53,7 @@ in order to evaluate the class associated to the asset you must use the default 
       end
     
       def store_dir
-        "uploads/#{Rails.env}/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
+        "#{Rails.env}/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
       end
     
     end
