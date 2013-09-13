@@ -31,13 +31,15 @@ or add it to your Gemfile
 your configuration must satisfy the following requirements:
 
 * specify `storage :fog`
-* use the default `store_dir` string (included below) or one that ends with `folder/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}`, any of the following will work
+* use the default `store_dir` string or one that ends with `folder/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}`
+
+  any of the following will work
 
 <pre>
-#{Rails.env}/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
-#{Rails.env}/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
 uploads/#{Rails.env}/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
 uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
+#{Rails.env}/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
+#{Rails.env}/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
 a/series/of/folder/names/or/1/numbers/2/that_do/not/contain/spaces/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}
 </pre>
 
@@ -53,7 +55,7 @@ for example
       end
     
       def store_dir
-        "#{Rails.env}/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
+        "uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
       end
     
     end
