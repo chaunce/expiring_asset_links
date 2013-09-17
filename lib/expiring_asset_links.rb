@@ -1,12 +1,22 @@
 require 'active_record'
+require 'expiring_asset_links/configuration'
 
 module ExpiringAssetLinks
   autoload :Version, 'expiring_asset_links/version'
-
-  def self.extended(base)
-    base.class_eval do
-      @expiring_asset_link_attributes = []
-      include InstanceMethods
+  extend ExpiringAssetLinks::Configuration
+  
+  class << self
+    
+    def extended(base)
+      base.class_eval do
+        @expiring_asset_link_attributes = []
+        include InstanceMethods
+      end
+    end
+  
+    def remove_asset_tags(value)
+      asset_url = Regexp::new "https://" + [/#{CarrierWave::Uploader::Base.fog_directory}\.s3\S+[amazon|amazonaws]\.com\//, self.fog_directory, /\/\S+Expires=[\d]{10}/].flatten.map{ |re| re.source }.join.gsub('\\/\\/', '\\/')
+      value.gsub(asset_url, '\k<name>{{\k<id>}}').gsub(/([a-z_]+)\{\{(\d+)\}\}/) { "#{$1.classify}{{#{$2}}}" }
     end
   end
 
@@ -33,12 +43,11 @@ module ExpiringAssetLinks
     protected
 
     def remove_asset_tags(attribute)
-      self[attribute.to_sym].gsub(/https:\/\/#{CarrierWave::Uploader::Base.fog_directory}\.s3.\S+\/([a-z_]+)\/[a-z_]+\/(\d+)\/\S+Expires=[\d]{10}/) { "#{$1.classify}{{#{$2}}}" }
+      ExpiringAssetLinks.remove_asset_tags(self[attribute.to_sym])
     end
 
     def add_asset_tags(attribute)
-      linked_attribute = 
-      self[attribute.to_sym].gsub(/([A-Za-z]+)\{\{(\d+)\}\}/) { $1.constantize.find($2).send($1.constantize.uploaders.keys.first).url(:default) }
+      linked_attribute = self[attribute.to_sym].gsub(/([A-Za-z]+)\{\{(\d+)\}\}/) { $1.constantize.find($2).send($1.constantize.uploaders.keys.first).url(:default) }
     end
 
     def remove_all_asset_tags!

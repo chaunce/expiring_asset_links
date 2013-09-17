@@ -12,19 +12,16 @@ ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":me
 
 ActiveRecord::Schema.define(:version => 1) do
   create_table :documents do |t|
-    t.integer :id
     t.string :title
     t.text :body
   end
   create_table :file_attachments do |t|
-    t.integer :id
-    t.integer :name
-    t.binary  :asset
+    t.string :name
+    t.binary :asset
   end
   create_table :image_attachments do |t|
-    t.integer :id
-    t.integer :name
-    t.binary  :asset
+    t.string :name
+    t.binary :asset
   end
 end
 
@@ -60,5 +57,3 @@ class AssetUploader < Struct.new(:my_url)
     "#{self.my_url}?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222"
   end
 end
-    
-  

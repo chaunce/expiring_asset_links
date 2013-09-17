@@ -1,7 +1,6 @@
 require File.expand_path('../test_helper', __FILE__)
 
 class ExpiringAssetLinksTest < Test::Unit::TestCase
-
   def setup
     CarrierWave.configure do |config|
       # config.cache_dir = "#{Rails.root}/tmp/assets"
@@ -19,12 +18,63 @@ class ExpiringAssetLinksTest < Test::Unit::TestCase
     end
   end
 
-  def test_should_assert_true
-    file_attachment = FileAttachment.create(name: "test", asset: AssetUploader.new("https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/1/sample.jpg"))
+  def test_class_id_path
+    ExpiringAssetLinks.configure do |conf|
+      conf.fog_directory = /\S+\/(?<name>[a-z_]+)\/[a-z_]+\/(?<id>\d+)/
+    end
+
+    file_attachment = FileAttachment.create(name: "test")
+    file_path = "https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/#{file_attachment.id}/sample.jpg"
+    file_attachment.update_attributes({asset: AssetUploader.new(file_path)})
     document = Document.create(title: "This is the Document Title", body: "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_attachment.send(FileAttachment.uploaders.keys.first).url}\">")
 
-    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{1}}\">", Document.find(document.id).attributes["body"]
-    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/1/sample.jpg?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">", Document.find(document.id).body
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{#{file_attachment.id}}}\">", Document.find(document.id).attributes["body"]
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_path}?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">", Document.find(document.id).body
+  end
+  
+  def test_id_class_path
+    ExpiringAssetLinks.configure do |conf|
+      conf.fog_directory = /\S+\/(?<id>\d+)\/[a-z_]+\/(?<name>[a-z_]+)/
+    end
+
+    file_attachment = FileAttachment.create(name: "test")
+    file_path = "https://test.s3-us-east-1.amazonaws.com/uploads/test/#{file_attachment.id}/asset/file_attachment/sample.jpg"
+    file_attachment.update_attributes({asset: AssetUploader.new(file_path)})
+    document = Document.create(title: "This is the Document Title", body: "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_attachment.send(FileAttachment.uploaders.keys.first).url}\">")
+
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{#{file_attachment.id}}}\">", Document.find(document.id).attributes["body"]
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_path}?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">", Document.find(document.id).body
+  end
+  
+  def test_multiple_assets
+    ExpiringAssetLinks.configure do |conf|
+      conf.fog_directory = /\S+\/(?<id>\d+)\/[a-z_]+\/(?<name>[a-z_]+)/
+    end
+
+    file_attachment_a = FileAttachment.create(name: "test")
+    file_path_a = "https://test.s3-us-east-1.amazonaws.com/uploads/test/#{file_attachment_a.id}/asset/file_attachment/sample.jpg"
+    file_attachment_a.update_attributes({asset: AssetUploader.new(file_path_a)})
+    file_attachment_b = FileAttachment.create(name: "test")
+    file_path_b = "https://test.s3-us-east-1.amazonaws.com/uploads/test/#{file_attachment_b.id}/asset/file_attachment/sample.jpg"
+    file_attachment_b.update_attributes({asset: AssetUploader.new(file_path_b)})
+    document = Document.create(title: "This is the Document Title", body: "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_attachment_a.send(FileAttachment.uploaders.keys.first).url}\"><p>And another image.</p><img src=\"#{file_attachment_b.send(FileAttachment.uploaders.keys.first).url}\">")
+
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{#{file_attachment_a.id}}}\"><p>And another image.</p><img src=\"FileAttachment{{#{file_attachment_b.id}}}\">", Document.find(document.id).attributes["body"]
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_path_a}?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\"><p>And another image.</p><img src=\"#{file_path_b}?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">", Document.find(document.id).body
+  end
+  
+  def test_with_leading_forward_slash_path
+    ExpiringAssetLinks.configure do |conf|
+      conf.fog_directory = /\/\S+\/(?<name>[a-z_]+)\/[a-z_]+\/(?<id>\d+)/
+    end
+
+    file_attachment = FileAttachment.create(name: "test")
+    file_path = "https://test.s3-us-east-1.amazonaws.com/uploads/test/file_attachment/asset/#{file_attachment.id}/sample.jpg"
+    file_attachment.update_attributes({asset: AssetUploader.new(file_path)})
+    document = Document.create(title: "This is the Document Title", body: "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_attachment.send(FileAttachment.uploaders.keys.first).url}\">")
+
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"FileAttachment{{#{file_attachment.id}}}\">", Document.find(document.id).attributes["body"]
+    assert_equal "<h2>Section One</h2><p>This is the first section in the body of the document.  It includes an image.</p><img src=\"#{file_path}?AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX&amp;Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXX%3D&amp;Expires=2222222222\">", Document.find(document.id).body
   end
 
 end
