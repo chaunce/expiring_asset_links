@@ -14,7 +14,9 @@ module ExpiringAssetLinks
 
     def configure
       yield self
-      raise "The configuration option `fog_directory` must be assigned Regexp." unless self.fog_directory.is_a?(Regexp)
+      raise TypeError, "expected fog_directory to be a Regexp" unless self.fog_directory.is_a?(Regexp)
+      missing_names = ["name", "id"] - self.fog_directory.names
+      raise RegexpError, "fog_directory must capture #{missing_names.join(' and ')}" unless missing_names.empty?
     end
   end
 end

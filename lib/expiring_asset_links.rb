@@ -16,7 +16,7 @@ module ExpiringAssetLinks
   
     def remove_asset_tags(value)
       asset_url = Regexp::new "https://" + [/#{CarrierWave::Uploader::Base.fog_directory}\.s3\S+[amazon|amazonaws]\.com\//, self.fog_directory, /\/\S+Expires=[\d]{10}/].flatten.map{ |re| re.source }.join.gsub('\\/\\/', '\\/')
-      value.gsub(asset_url, '\k<name>{{\k<id>}}').gsub(/([a-z_]+)\{\{(\d+)\}\}/) { "#{$1.classify}{{#{$2}}}" }
+      value.gsub(asset_url, '\k<name>{{\k<id>}}').gsub(/([A-Za-z_]+)\{\{(\d+)\}\}/) { "#{$1.classify}{{#{$2}}}" }
     end
   end
 
